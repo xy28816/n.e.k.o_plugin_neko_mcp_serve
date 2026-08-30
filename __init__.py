@@ -17,8 +17,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any, Optional
 
 from plugin.sdk.adapter import NekoAdapterPlugin
-from plugin.sdk.adapter.gateway_models import ExternalRequest
-from plugin.sdk.plugin import Ok, SdkError, Err, lifecycle, neko_plugin, plugin_entry
+from plugin.sdk.plugin import Err, Ok, SdkError, lifecycle, neko_plugin, plugin_entry
 
 _DEFAULT_HOST = "127.0.0.1"
 _DEFAULT_PORT = 48930
@@ -70,10 +69,14 @@ class NekoMcpServePlugin(NekoAdapterPlugin):
 
     def _stop_http_server(self):
         if self._http_server:
-            try: self._http_server.shutdown()
-            except Exception: pass
-            try: self._http_server.server_close()
-            except Exception: pass
+            try:
+                self._http_server.shutdown()
+            except Exception:
+                pass
+            try:
+                self._http_server.server_close()
+            except Exception:
+                pass
             self._http_server = None
 
     def _make_handler(self):
@@ -93,25 +96,30 @@ class NekoMcpServePlugin(NekoAdapterPlugin):
                 return self.headers.get("X-NEKO-Token", "") == plugin._token
             def do_GET(self):
                 if not self._authorize():
-                    self._send_json(403, {"ok": False, "error": "unauthorized"}); return
+                    self._send_json(403, {"ok": False, "error": "unauthorized"})
+                    return
                 if self.path in ("/health", "/v1/health"):
                     self._send_json(200, {"ok": True, "service": "neko_mcp_serve", "port": plugin._port})
                 else:
                     self._send_json(404, {"ok": False, "error": "not found"})
             def do_POST(self):
                 if not self._authorize():
-                    self._send_json(403, {"ok": False, "error": "unauthorized"}); return
+                    self._send_json(403, {"ok": False, "error": "unauthorized"})
+                    return
                 if self.path not in ("/say", "/v1/say", "/speak", "/v1/speak"):
-                    self._send_json(404, {"ok": False, "error": "not found"}); return
+                    self._send_json(404, {"ok": False, "error": "not found"})
+                    return
                 try:
                     length = int(self.headers.get("Content-Length") or 0)
                     raw = self.rfile.read(length) if length else b"{}"
                     body = json.loads(raw.decode("utf-8") or "{}")
                 except Exception as exc:
-                    self._send_json(400, {"ok": False, "error": f"bad request: {exc}"}); return
+                    self._send_json(400, {"ok": False, "error": f"bad request: {exc}"})
+                    return
                 text = str(body.get("text") or "").strip()
                 if not text:
-                    self._send_json(400, {"ok": False, "error": "empty text"}); return
+                    self._send_json(400, {"ok": False, "error": "empty text"})
+                    return
                 source = str(body.get("source") or "neko_mcp_serve")
                 is_speak = self.path in ("/speak", "/v1/speak")
                 ok, detail = plugin._push(text, source, ai_behavior="blind" if is_speak else "respond")
@@ -190,7 +198,8 @@ class NekoMcpServePlugin(NekoAdapterPlugin):
 
     def _save_core_config(self, data: dict) -> None:
         """把原始 JSON 写回磁盘 core_config.json（保留原缩进格式，带原子写）。"""
-        import os, tempfile
+        import os
+        import tempfile
         path = self._core_cfg_path()
         d = os.path.dirname(path)
         fd, tmp = tempfile.mkstemp(dir=d, prefix="core_config.tmp", suffix=".json")
@@ -200,8 +209,10 @@ class NekoMcpServePlugin(NekoAdapterPlugin):
             os.replace(tmp, path)
         finally:
             if os.path.exists(tmp):
-                try: os.remove(tmp)
-                except Exception: pass
+                try:
+                    os.remove(tmp)
+                except Exception:
+                    pass
 
     def _backup_path(self) -> Optional[str]:
         import os
@@ -212,7 +223,8 @@ class NekoMcpServePlugin(NekoAdapterPlugin):
         path = self._backup_path()
         if not path:
             raise SdkError("cannot resolve backup path")
-        import tempfile, os
+        import os
+        import tempfile
         d = os.path.dirname(path)
         fd, tmp = tempfile.mkstemp(dir=d, prefix="core_config_backup.tmp", suffix=".json")
         try:
@@ -221,8 +233,10 @@ class NekoMcpServePlugin(NekoAdapterPlugin):
             os.replace(tmp, path)
         finally:
             if os.path.exists(tmp):
-                try: os.remove(tmp)
-                except Exception: pass
+                try:
+                    os.remove(tmp)
+                except Exception:
+                    pass
         self.logger.info("core_config backed up to %s", path)
         return path
 
