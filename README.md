@@ -1,6 +1,13 @@
 # NEKO Speak Serve
 
-Describe what this plugin does and how to configure it.
+主要功能是让外部程序控制N.E.K.O。
+现在实现了N.E.K.O→DSH→N.E.K.O和DSH→N.E.K.O的对话顺序。
+灵感来自于https://github.com/Project-N-E-K-O/N.E.K.O/issues/2881
+因为一些原因这里暂时只做了对DSH框架的适配，DSH侧插件见https://github.com/xy28816/dsh-external-brain
+N.E.K.O侧发起的对话是通过修改对话模型配置实现的，返回N.E.K.O的信息时可以这样理解：它是一个绑定在本机127.0.0.1:48930的小HTTP服务器，谁POST文本进来，它就把这段文本塞进N.E.K.O的对话管线，让猫娘说话。
+但是有些功能可能有点问题，无法使用，但是至少基础的对话已经可以用了.
+（应该是我电脑性能的原因吧，打开这些软件后DSH回复时间特别长开始，时间已经可以按分钟算了，以至于放了一段时间后甚至堆积了近百条未处理的消息qwq)
+(我好像记得还要写点什么的...算了，想起来再写吧。）
 
 ## Development
 
